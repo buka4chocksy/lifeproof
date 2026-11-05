@@ -1,0 +1,24 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "default_agent": "pm",
+  "model": "deepseek/deepseek-v4-pro",
+  "worktree": {
+    "directory": ".worktrees"
+  },
+  "experimental": {
+    "todo": true
+  },
+  "watcher": {
+    "ignore": [".worktrees/**", "**/node_modules/**", "**/.next/**", "**/dist/**"]
+  },
+  "permissions": [
+    { "action": "shell", "resource": "*", "effect": "allow" },
+    { "action": "shell", "resource": "git push *", "effect": "deny" },
+    { "action": "shell", "resource": "sudo *", "effect": "ask" },
+    { "action": "shell", "resource": "rm -rf *", "effect": "ask" },
+    { "action": "shell", "resource": "git reset --hard *", "effect": "ask" },
+    { "action": "shell", "resource": "git clean -fd *", "effect": "ask" },
+    { "action": "shell", "resource": "docker compose down -v *", "effect": "ask" },
+    { "action": "shell", "resource": "docker volume rm *", "effect": "ask" }
+  ]
+}

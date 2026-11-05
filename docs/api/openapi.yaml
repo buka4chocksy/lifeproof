@@ -1,0 +1,102 @@
+openapi: 3.1.0
+info:
+  title: LifeProof API
+  version: 0.1.0
+  description: |
+    LifeProof Portal API contract. This is a baseline; the backend owns expansion.
+    All capabilities are designed as versioned domain services so the Phase 2
+    partner API is an exposure layer, not a rewrite.
+servers:
+  - url: http://localhost:4000/v1
+    description: Local development
+security:
+  - bearerAuth: []
+  - cookieAuth: []
+paths:
+  /health:
+    get:
+      operationId: getHealth
+      summary: Service and database readiness
+      security: []
+      responses:
+        "200":
+          description: Service is reachable. Database may be degraded or not configured.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthCheck"
+        "503":
+          description: Service is unavailable.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: lifeproof_session
+  schemas:
+    HealthCheck:
+      type: object
+      required:
+        - status
+        - service
+        - version
+        - timestamp
+        - checks
+      properties:
+        status:
+          type: string
+          enum:
+            - ok
+            - degraded
+        service:
+          type: string
+        version:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        checks:
+          type: object
+          required:
+            - database
+          properties:
+            database:
+              type: string
+              enum:
+                - up
+                - down
+                - not_configured
+    ErrorEnvelope:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+            - request_id
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  reason:
+                    type: string
+            request_id:
+              type: string

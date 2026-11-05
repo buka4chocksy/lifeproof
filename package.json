@@ -1,0 +1,28 @@
+{
+  "name": "lifeproof-portal",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LifeProof Continuity Platform — Phase 1 MVP monorepo",
+  "packageManager": "pnpm@8.12.1",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @lifeproof/api --filter @lifeproof/web dev",
+    "dev:api": "pnpm --filter @lifeproof/api dev",
+    "dev:web": "pnpm --filter @lifeproof/web dev",
+    "build": "pnpm -r --if-present build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "lint": "biome check .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "db:generate": "pnpm --filter @lifeproof/db generate",
+    "db:migrate": "pnpm --filter @lifeproof/db migrate",
+    "db:studio": "pnpm --filter @lifeproof/db studio"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.5",
+    "typescript": "^5.9.3"
+  }
+}
