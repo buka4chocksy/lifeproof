@@ -1,5 +1,5 @@
+import { createWorkspaceSchema } from '@lifeproof/contracts';
 import { describe, expect, it } from 'vitest';
-import { createWorkspaceSchema } from '../../../../packages/contracts/src/index';
 import { ErrorCode, isUniqueViolation } from '../common/api-error';
 import type { DatabaseService } from '../database/database.service';
 import { WorkspacesService } from './workspaces.service';

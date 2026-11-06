@@ -237,7 +237,13 @@ empirically by the reviewer, must be carried into T-010:
 
 ## D-021 — T-010 review + contracts-package build gap
 
-**Status:** accepted (recorded, not blocking)
+**Status:** resolved 2026-11-06 by T-021
+
+**Resolution:** `packages/contracts` now builds to `packages/contracts/dist` (CommonJS + `.d.ts`).
+`apps/api` imports `@lifeproof/contracts` by package name, `rootDir` is back to `./src`, and Nest emits
+`dist/main.js`. `apps/web` declares the contracts dependency and its `workspace-types.ts` is now a type
+re-export, not a duplicated mirror. `pnpm dev`, `typecheck`, `test`, and `build` build contracts first;
+CI builds contracts before the quality gates. Dev watch was verified with 0 compiler errors.
 
 T-010 (walking-skeleton API) passed reviewer review (approve-with-notes, no blockers). Notes and
 decisions:

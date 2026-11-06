@@ -6,6 +6,8 @@ export {
   workspaceCreatedAuditEventSchema,
 } from './audit';
 export {
+  type ApiFieldError,
+  apiFieldErrorSchema,
   type ErrorEnvelope,
   errorEnvelopeSchema,
   type HealthCheck,
@@ -22,6 +24,9 @@ export {
   MAX_LIST_LIMIT,
   type Workspace,
   type WorkspaceList,
+  type WorkspaceRegion,
+  type WorkspaceStatus,
+  type WorkspaceType,
   workspaceListSchema,
   workspaceRegionSchema,
   workspaceSchema,

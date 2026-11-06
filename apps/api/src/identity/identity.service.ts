@@ -1,9 +1,6 @@
+import { type IdentityPrincipal, identityPrincipalSchema } from '@lifeproof/contracts';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  type IdentityPrincipal,
-  identityPrincipalSchema,
-} from '../../../../packages/contracts/src/index';
 import { ApiException, ErrorCode } from '../common/api-error';
 import { isUuid } from '../common/uuid';
 import { DatabaseService } from '../database/database.service';

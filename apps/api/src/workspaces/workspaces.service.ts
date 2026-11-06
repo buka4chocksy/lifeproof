@@ -1,6 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { Injectable } from '@nestjs/common';
-import type { PoolClient } from 'pg';
 import {
   type CreateWorkspace,
   createWorkspaceSchema,
@@ -11,7 +9,9 @@ import {
   type WorkspaceList,
   workspaceCreatedAuditEventSchema,
   workspaceSchema,
-} from '../../../../packages/contracts/src/index';
+} from '@lifeproof/contracts';
+import { Injectable } from '@nestjs/common';
+import type { PoolClient } from 'pg';
 import { ApiException, ErrorCode, isUniqueViolation, validationError } from '../common/api-error';
 import { isUuid } from '../common/uuid';
 import { DatabaseService } from '../database/database.service';

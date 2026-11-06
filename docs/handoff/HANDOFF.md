@@ -20,6 +20,7 @@ release loop is the next milestone, not feature breadth.
 | Walking-skeleton UI (T-011) | Create-workspace form + 11-category empty-state dashboard; new tokens mirrored (`danger`/`dangerSoft`/`lineStrong`); brand externalized (`brand.name`, no hardcoded "LifeProof"). Browser walkthrough verified: create → `/workspaces/{id}?created=1` shows "Your safe is ready" + audit hint + category grid, 0 console errors. Contracts-build follow-up in `DECISIONS.md` D-021 |
 | Execution PRD + Phase 0 decisions (T-008) | `docs/product/PRD.md` §2 records D-P0-01…06 with trade-offs; `docs/product/OPEN_QUESTIONS.md` (12 non-blocking items). See "Decisions" below |
 | Remote + CI (T-001/T-012) | `origin` → `github.com/buka4chocksy/lifeproof`; GitHub Actions run [42141619303](https://github.com/buka4chocksy/lifeproof/actions/runs/42141619303) passed on `main` — lint, typecheck, 40 tests, build |
+| Contracts package (D-021/T-021) | `packages/contracts` builds CommonJS + `.d.ts` to `dist`; API/web use bare `@lifeproof/contracts` imports; API `rootDir` reverted to `./src`, output is `dist/main.js`; web mirror is now a type re-export. `pnpm dev` watch verified with 0 compiler errors; lint/typecheck/test/build pass |
 
 Quality gates pass locally: `lint` (0 diagnostics), `typecheck` (web/api/db/packages), `test` (40 tests),
 `build` (API + Next prod). Remote CI passed on `main` in run
@@ -32,11 +33,12 @@ Quality gates pass locally: `lint` (0 diagnostics), `typecheck` (web/api/db/pack
 ## Next three tasks
 
 1. **T-009 (owner)** — finish the threat-model v1 update.
-2. **Security follow-ups (T-013)** — address the non-blocking residual risks in D-022: remove the dev
-   identity stub before shared environments, add an `app_user` LOGIN role + FORCE RLS, structured 500
-   logging, rate limiting, Idempotency-Key dedupe, and the hardcoded icon aria-label.
-3. **Contract package cleanup (D-021)** — make `@lifeproof/contracts` buildable so API and web import it
-   directly, removing the relative-import/wide-`rootDir` hack and `workspace-types.ts` mirror.
+2. **Vault contract freeze (T-016–T-018)** — schema (DBA), API contract (backend), and item form/seal
+   flow (designer) in parallel; then T-019/T-020 implementation. Resolve the four open design questions
+   in `DESIGN.md` §9.10 as part of T-018.
+3. **Security follow-ups (T-013/D-022)** — remove the dev identity stub before shared environments, add
+   an `app_user` LOGIN role + FORCE RLS, structured 500 logging, rate limiting, Idempotency-Key dedupe,
+   and the hardcoded icon aria-label.
 
 > Note: the walking skeleton is complete — contracts (T-005/006/007), RLS refinements (T-014/015), backend
 > (T-010), frontend (T-011), and the security baseline review (T-013, **acceptable to proceed**, no

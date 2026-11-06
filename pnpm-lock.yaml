@@ -75,6 +75,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@lifeproof/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@lifeproof/design-tokens':
         specifier: workspace:*
         version: link:../../packages/design-tokens

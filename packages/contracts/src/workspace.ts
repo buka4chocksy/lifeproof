@@ -7,7 +7,11 @@ import { z } from 'zod';
 
 export const workspaceTypeSchema = z.enum(['personal', 'family', 'business']);
 
+export type WorkspaceType = z.infer<typeof workspaceTypeSchema>;
+
 export const workspaceStatusSchema = z.enum(['active', 'read_only', 'suspended', 'deleted']);
+
+export type WorkspaceStatus = z.infer<typeof workspaceStatusSchema>;
 
 /**
  * Launch jurisdiction (D-014 / D-P0-01): defaults to `GB` (England & Wales);
@@ -16,6 +20,8 @@ export const workspaceStatusSchema = z.enum(['active', 'read_only', 'suspended',
  * contract intentionally restricts to these two values for now.
  */
 export const workspaceRegionSchema = z.enum(['GB', 'NG']);
+
+export type WorkspaceRegion = z.infer<typeof workspaceRegionSchema>;
 
 export const workspaceSchema = z.object({
   id: z.string().uuid(),

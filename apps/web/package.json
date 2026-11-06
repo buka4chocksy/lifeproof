@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@lifeproof/contracts": "workspace:*",
     "@lifeproof/design-tokens": "workspace:*",
     "@lifeproof/ui": "workspace:*",
     "next": "^15.5.29",

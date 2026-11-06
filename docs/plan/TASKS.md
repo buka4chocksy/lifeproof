@@ -6,12 +6,15 @@
 
 ## Current milestone
 
-**M1 walking skeleton:** prove the release-loop foundation with the thinnest slice — create a
-workspace, see it in the UI, and emit an immutable audit event. Vault, verification, release, billing,
-and admin features are deferred until this loop works (release-loop-first rule).
+**M1 walking skeleton — DONE** (create a workspace → see it in the UI → emit an audit event; green CI +
+branch protection on `main`).
 
-The first three tasks are **contract freezes** (schema → API/design). They own only planning artifacts;
-no application implementation starts until the contracts are frozen.
+**Next slice — vault item create + seal** (the release-loop "hook"): a category-first item a user can
+create, edit (versioned), and seal under step-up auth, scoped by workspace under RLS. Contracts freeze
+first (schema → API/design), then implementation. Documents, beneficiaries, conditions, verification,
+release, billing, and admin stay deferred until the release loop is proven (release-loop-first rule).
+
+The contract tasks (T-016/T-017/T-018) own only planning artifacts; no implementation until frozen.
 
 ## Board
 
@@ -32,6 +35,12 @@ no application implementation starts until the contracts are frozen.
 | T-012 | First green CI run + branch protection | pm | done | T-001 | — |
 | T-013 | Security baseline review | reviewer | done | T-001, T-003 | `tasks/T-013.md` |
 | T-009 | Threat model v1 update | owner | in-progress | T-008 | — |
+| T-016 | **Schema contract:** vault items + versions + RLS | dba | in-progress | T-005 | `tasks/T-016.md` |
+| T-017 | **API contract:** vault item create/get/seal | backend | ready | T-006 | `tasks/T-017.md` |
+| T-018 | **Design contract:** item form + seal flow | designer | ready | T-007 | `tasks/T-018.md` |
+| T-019 | Vault item API implementation | backend | todo | T-016, T-017 | — |
+| T-020 | Vault item UI (create/seal) | frontend | todo | T-017, T-018, T-019 | — |
+| T-021 | Contracts package build + bare imports | backend | done | T-006 | `tasks/T-021.md` |
 
 ## Notes
 
@@ -45,6 +54,12 @@ no application implementation starts until the contracts are frozen.
 - **T-001/T-012 closed** — remote `origin` is configured; GitHub Actions run
   [42141619303](https://github.com/buka4chocksy/lifeproof/actions/runs/42141619303) passed on `main`
   (lint, typecheck, 40 tests, build).
+- **T-021 done** — D-021 resolved: contracts build to `dist`; API/web use bare imports; API `rootDir`
+  is back to `./src`; web type mirror replaced with a re-export. Dev watch verified with 0 errors.
+  Branch protection is enabled on `main`: require the `Lint, typecheck, test, build` status check
+  (strict), require a PR, admins enforced, no force-push/delete.
+- **Vault slice (T-016–T-020):** contract freeze first (T-016 schema → T-017 API / T-018 design), then
+  T-019 (API impl) and T-020 (UI). T-016/T-017/T-018 run in parallel (non-overlapping owned paths).
 
 ## Rules
 

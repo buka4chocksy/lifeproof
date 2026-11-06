@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "nest start --watch",
-    "build": "nest build",
-    "start": "node dist/apps/api/src/main.js",
-    "start:prod": "node dist/apps/api/src/main.js",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "dev": "pnpm --filter @lifeproof/contracts build && nest start --watch",
+    "build": "pnpm --filter @lifeproof/contracts build && nest build",
+    "start": "node dist/main.js",
+    "start:prod": "node dist/main.js",
+    "typecheck": "pnpm --filter @lifeproof/contracts build && tsc --noEmit",
+    "test": "pnpm --filter @lifeproof/contracts build && vitest run",
+    "test:watch": "pnpm --filter @lifeproof/contracts build && vitest"
   },
   "dependencies": {
     "@nestjs/common": "^11.2.8",

@@ -6,13 +6,7 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "outDir": "./dist",
-    // `rootDir` is the monorepo root so the API build compiles the frozen
-    // `packages/contracts` Zod schemas (TypeScript source) into `dist/`. The frozen
-    // contracts package ships only `.ts` (its `main` is `./src/index.ts`), so a bare
-    // `@lifeproof/contracts` import would pass typecheck but crash at runtime (Node
-    // cannot require `.ts`). Relative imports + this wide rootDir let the emitted
-    // `require('../../../packages/contracts/src/index')` resolve to the compiled JS.
-    "rootDir": "../..",
+    "rootDir": "./src",
     "baseUrl": ".",
     "incremental": true,
     "tsBuildInfoFile": "./dist/.tsbuildinfo"

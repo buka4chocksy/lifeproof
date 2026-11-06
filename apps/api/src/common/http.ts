@@ -1,4 +1,4 @@
-import type { IdentityPrincipal } from '../../../../packages/contracts/src/index';
+import type { IdentityPrincipal } from '@lifeproof/contracts';
 
 /**
  * Minimal structural types for the Express request/response objects used across the

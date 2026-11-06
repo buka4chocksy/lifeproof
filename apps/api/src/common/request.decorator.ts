@@ -1,5 +1,5 @@
+import type { IdentityPrincipal } from '@lifeproof/contracts';
 import { createParamDecorator, type ExecutionContext } from '@nestjs/common';
-import type { IdentityPrincipal } from '../../../../packages/contracts/src/index';
 import type { HttpRequest } from './http';
 
 export const CurrentPrincipal = createParamDecorator(

@@ -1,9 +1,5 @@
+import type { IdentityPrincipal, Workspace, WorkspaceList } from '@lifeproof/contracts';
 import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
-import type {
-  IdentityPrincipal,
-  Workspace,
-  WorkspaceList,
-} from '../../../../packages/contracts/src/index';
 import { CurrentPrincipal, RequestId } from '../common/request.decorator';
 import { IdentityGuard } from '../identity/identity.guard';
 import { WorkspacesService } from './workspaces.service';

@@ -12,18 +12,18 @@ export const healthCheckSchema = z.object({
 
 export type HealthCheck = z.infer<typeof healthCheckSchema>;
 
+export const apiFieldErrorSchema = z.object({
+  field: z.string().optional(),
+  reason: z.string(),
+});
+
+export type ApiFieldError = z.infer<typeof apiFieldErrorSchema>;
+
 export const errorEnvelopeSchema = z.object({
   error: z.object({
     code: z.string(),
     message: z.string(),
-    details: z
-      .array(
-        z.object({
-          field: z.string().optional(),
-          reason: z.string(),
-        }),
-      )
-      .optional(),
+    details: z.array(apiFieldErrorSchema).optional(),
     request_id: z.string(),
   }),
 });

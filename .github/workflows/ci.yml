@@ -57,6 +57,9 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      - name: Build shared contracts
+        run: pnpm --filter @lifeproof/contracts build
+
       - name: Migrate database
         run: pnpm db:migrate
 

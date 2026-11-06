@@ -8,12 +8,13 @@
     "node": ">=20.19.0"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter @lifeproof/api --filter @lifeproof/web dev",
-    "dev:api": "pnpm --filter @lifeproof/api dev",
-    "dev:web": "pnpm --filter @lifeproof/web dev",
+    "dev": "pnpm --filter @lifeproof/contracts build && pnpm --parallel --filter @lifeproof/api --filter @lifeproof/web dev",
+    "dev:api": "pnpm --filter @lifeproof/contracts build && pnpm --filter @lifeproof/api dev",
+    "dev:web": "pnpm --filter @lifeproof/contracts build && pnpm --filter @lifeproof/web dev",
+    "dev:contracts": "pnpm --filter @lifeproof/contracts dev",
     "build": "pnpm -r --if-present build",
-    "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm -r --if-present test",
+    "typecheck": "pnpm --filter @lifeproof/contracts build && pnpm -r --if-present typecheck",
+    "test": "pnpm --filter @lifeproof/contracts build && pnpm -r --if-present test",
     "lint": "biome check .",
     "format": "biome format --write .",
     "format:check": "biome format .",
