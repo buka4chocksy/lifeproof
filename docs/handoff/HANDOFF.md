@@ -19,23 +19,24 @@ release loop is the next milestone, not feature breadth.
 | Walking-skeleton API (T-010) | Dev identity (allowlist gate, `X-Dev-User-Id`), tenant-scoped RLS access, `POST/GET /workspaces` + `GET /workspaces/{id}`, `workspace.created` audit emission, `409 name_conflict`. 40 tests (contracts 21 + api 19 incl. live-Postgres RLS integration). Reviewer approved-with-notes; notes + contracts-build gap in `DECISIONS.md` D-021 |
 | Walking-skeleton UI (T-011) | Create-workspace form + 11-category empty-state dashboard; new tokens mirrored (`danger`/`dangerSoft`/`lineStrong`); brand externalized (`brand.name`, no hardcoded "LifeProof"). Browser walkthrough verified: create → `/workspaces/{id}?created=1` shows "Your safe is ready" + audit hint + category grid, 0 console errors. Contracts-build follow-up in `DECISIONS.md` D-021 |
 | Execution PRD + Phase 0 decisions (T-008) | `docs/product/PRD.md` §2 records D-P0-01…06 with trade-offs; `docs/product/OPEN_QUESTIONS.md` (12 non-blocking items). See "Decisions" below |
+| Remote + CI (T-001/T-012) | `origin` → `github.com/buka4chocksy/lifeproof`; GitHub Actions run [42141619303](https://github.com/buka4chocksy/lifeproof/actions/runs/42141619303) passed on `main` — lint, typecheck, 40 tests, build |
 
 Quality gates pass locally: `lint` (0 diagnostics), `typecheck` (web/api/db/packages), `test` (40 tests),
-`build` (API + Next prod). Remote CI has not run yet.
+`build` (API + Next prod). Remote CI passed on `main` in run
+[42141619303](https://github.com/buka4chocksy/lifeproof/actions/runs/42141619303).
 
 ## In progress
 
-- **T-001 (review)** — monorepo/CI quality gates. Blocked on a remote CI run + branch protection.
 - **T-009 (owner)** — threat-model v1 update (auth provider already decided: Auth0).
 
 ## Next three tasks
 
-1. **T-012 (pm)** — first green remote CI run + branch protection. **Requires pushing to GitHub → human
-   approval.**
-2. **T-009 (owner)** — threat-model v1 update (auth provider already decided: Auth0).
-3. **Consolidated follow-up** — make `@lifeproof/contracts` buildable so `apps/api` and `apps/web` both
-   import it directly (removes the API's relative-import + wide-`rootDir` hack and the web's
-   `workspace-types.ts` mirror). See `DECISIONS.md` D-021/D-022.
+1. **T-009 (owner)** — finish the threat-model v1 update.
+2. **Security follow-ups (T-013)** — address the non-blocking residual risks in D-022: remove the dev
+   identity stub before shared environments, add an `app_user` LOGIN role + FORCE RLS, structured 500
+   logging, rate limiting, Idempotency-Key dedupe, and the hardcoded icon aria-label.
+3. **Contract package cleanup (D-021)** — make `@lifeproof/contracts` buildable so API and web import it
+   directly, removing the relative-import/wide-`rootDir` hack and `workspace-types.ts` mirror.
 
 > Note: the walking skeleton is complete — contracts (T-005/006/007), RLS refinements (T-014/015), backend
 > (T-010), frontend (T-011), and the security baseline review (T-013, **acceptable to proceed**, no
@@ -45,7 +46,8 @@ Quality gates pass locally: `lint` (0 diagnostics), `typecheck` (web/api/db/pack
 
 ## Blockers
 
-None hard. T-010/T-011 now unblocked (all three contracts frozen). T-001 gated on remote CI.
+None hard. T-010/T-011 are complete, contracts are frozen, and T-001/T-012 are closed by a green
+remote CI run.
 Four design questions await the owner (see §9.10 in `docs/design/DESIGN.md`): category list source,
 user-facing term for "workspace" ("safe"), "Add" placeholder behaviour, and Nigeria gating UX.
 

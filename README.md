@@ -1,5 +1,7 @@
 # LifeProof Portal
 
+[![CI](https://github.com/buka4chocksy/lifeproof/actions/workflows/ci.yml/badge.svg)](https://github.com/buka4chocksy/lifeproof/actions/workflows/ci.yml)
+
 LifeProof is a verified-release infrastructure company with a family-facing vault. The vault is the hook; the release is the product; verification and legal acceptance are the moat.
 
 This repository is the Phase 1 MVP monorepo. It was scaffolded from the approved build plan in [`docs/build-plan/`](./docs/build-plan/), which contains the strategy kernel, PRD, architecture, epics, delivery plan, and business plan.

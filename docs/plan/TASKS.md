@@ -28,8 +28,8 @@ no application implementation starts until the contracts are frozen.
 | T-010 | Walking skeleton: workspace create/list API | backend | done | T-005, T-006, T-014, T-015 | `tasks/T-010.md` |
 | T-015 | NULLIF-harden RLS policies (GUC empty-string) | dba | done | T-014 | `tasks/T-015.md` |
 | T-011 | Walking skeleton: workspace dashboard UI | frontend | done | T-006, T-007, T-010 | `tasks/T-011.md` |
-| T-001 | Monorepo, quality gates, and CI | pm | review | — | — |
-| T-012 | First green CI run + branch protection | pm | ready | T-001 | — |
+| T-001 | Monorepo, quality gates, and CI | pm | done | — | — |
+| T-012 | First green CI run + branch protection | pm | done | T-001 | — |
 | T-013 | Security baseline review | reviewer | done | T-001, T-003 | `tasks/T-013.md` |
 | T-009 | Threat model v1 update | owner | in-progress | T-008 | — |
 
@@ -42,7 +42,9 @@ no application implementation starts until the contracts are frozen.
 - **T-008 done** — the owner's execution PRD is approved and Phase 0 decisions are locked (`docs/product/PRD.md`).
 - **T-009 narrowed** — the auth provider is now locked to Auth0 (D-P0-03); only the threat-model v1
   update remains owner-owned and does not block the contract tasks.
-- T-001 remains in `review` until CI runs on the remote (see `docs/handoff/HANDOFF.md`).
+- **T-001/T-012 closed** — remote `origin` is configured; GitHub Actions run
+  [42141619303](https://github.com/buka4chocksy/lifeproof/actions/runs/42141619303) passed on `main`
+  (lint, typecheck, 40 tests, build).
 
 ## Rules
 
