@@ -8,6 +8,27 @@
       "when": 1793915748979,
       "tag": "0000_spotty_wonder_man",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1793918537736,
+      "tag": "0001_giant_miracleman",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793921399538,
+      "tag": "0002_workspaces_select_member",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793922515065,
+      "tag": "0003_nullif_harden_rls",
+      "breakpoints": true
     }
   ]
 }

@@ -7,8 +7,22 @@
 ## 1. Tenancy model
 
 - Shared PostgreSQL schema; every tenant-owned table has `workspace_id`.
-- Row-Level Security is enforced at the database layer.
+- Row-Level Security is enforced at the database layer — live since migration `0001_giant_miracleman`
+  (T-005). Policies scope rows via `app.workspace_id`; members also match a user's own rows via
+  `app.current_user_id` (D-002).
+- `workspaces` has two SELECT policies, OR-combined (PostgreSQL SELECT policies are additive):
+  - `workspaces_select_tenant` — `id = app.workspace_id` (get-one path).
+  - `workspaces_select_member` — `owner_id = app.current_user_id` OR membership via
+    `workspace_members` (added in `0002_workspaces_select_member`, T-014 / D-019). It enables
+    `GET /workspaces` (list the caller's workspaces) and the owner's `INSERT … RETURNING` during
+    create, without cross-tenant leakage.
 - Per transaction, the application sets `app.workspace_id` and `app.current_user_id`.
+- GUC hardening (T-015 / D-020): every policy that casts a session GUC to `uuid` wraps the read in
+  `NULLIF(current_setting('…', true), '')` so an empty-string GUC (left by `SET LOCAL` + rollback on a
+  pooled connection) degrades to `NULL` and **fails closed** (zero rows) instead of raising
+  `invalid input syntax for type uuid: ""`. Applied in `0003_nullif_harden_rls` via in-place
+  `ALTER POLICY … USING / WITH CHECK` (no DROP + CREATE, no grant-set change, no
+  `FORCE ROW LEVEL SECURITY`).
 - Partner access is scoped by `partner_id` and an explicit consent grant.
 - Admin access uses a separate role, a reason, and an expiry. It must not silently bypass RLS.
 - No cross-tenant joins in application queries. Reporting uses a separate read model.
@@ -20,11 +34,13 @@ Defined in [`../../db/src/schema.ts`](../../db/src/schema.ts):
 | Table | Purpose | Notes |
 |---|---|---|
 | `users` | Account identity | `email_ciphertext` + unique `email_hash`; never store plaintext email. |
-| `workspaces` | Personal/family/business tenant | `region` is required and has no default until the launch market is chosen. |
+| `workspaces` | Personal/family/business tenant | `region` defaults to `'GB'` (D-014 / D-P0-01); `'NG'` remains supported with no build work until gated. |
 | `workspace_members` | Membership and role | Unique `(workspace_id, user_id)`; roles include owner/admin/member/family organiser/beneficiary. |
+| `audit_events` | Append-only audit ledger | `actor_id` nullable FK to `users`; `workspace_id` NOT NULL; `prev_hash`/`hash` reserved for US-141. |
 
-The scaffold tables are a starting point. They do not yet include RLS policies, audit tables, or the
-full vault/verification/release model.
+The baseline tables now carry RLS policies and the append-only `audit_events` ledger (T-005), and
+`workspaces` gained the `workspaces_select_member` SELECT policy (T-014) for list-by-owner/member.
+The full vault/verification/release model is still to be built.
 
 ## 3. Planned core tables
 
@@ -37,7 +53,7 @@ full vault/verification/release model.
   multi-signal evidence, four-eyes decisions.
 - `release_cases`, `release_access`, `release_receipts` — cooling-off, scoped grants, proof of delivery.
 - `legal_holds`, `disputes` — suspension and appeal paths.
-- `audit_events` — append-only, hash-chained, 7-year retention.
+- `audit_events` — **implemented (T-005)** — append-only, hash-chained, 7-year retention (see §2 and §5).
 - `consents` — versioned consent purposes.
 - `outbox_events` — reliable domain events.
 - `emergency_packs` — versioned pack metadata and PIN hash.
@@ -56,6 +72,11 @@ full vault/verification/release model.
 - Every sensitive action writes an immutable audit event with actor, action, subject, timestamp,
   request ID, IP hash, and before/after hashes.
 - Events form a hash chain. Daily anchors go to immutable storage.
+- Append-only is enforced at the database layer: `app_user` holds only SELECT + INSERT on
+  `audit_events` (UPDATE/DELETE/TRUNCATE are revoked), and `audit_events_deny_mutation()` triggers raise
+  on `BEFORE UPDATE OR DELETE` (row) and `BEFORE TRUNCATE` (statement).
+- `prev_hash`/`hash` columns are present now; hash-chain computation and daily anchoring are delivered
+  later in US-141.
 - A break in the chain is a critical incident.
 - Audit records survive account deletion with PII minimized.
 

@@ -11,6 +11,10 @@
   --muted: #5f6b65;
   --line: #d9d2c3;
   --white: #fffdf8;
+  /* Mirrored from packages/design-tokens (T-007, design §9.9). */
+  --danger: #9c3d34;
+  --danger-soft: #f4e3e0;
+  --line-strong: #7d857d;
 }
 
 html {

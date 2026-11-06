@@ -1,3 +1,4 @@
+import { shadows } from '@lifeproof/design-tokens';
 import type { Config } from 'tailwindcss';
 
 const config: Config = {
@@ -12,6 +13,12 @@ const config: Config = {
         highlight: 'var(--highlight)',
         muted: 'var(--muted)',
         line: 'var(--line)',
+        // Control borders only; `line` is decorative and fails 1.4.11 (design §9.9).
+        'line-strong': 'var(--line-strong)',
+        danger: 'var(--danger)',
+        'danger-soft': 'var(--danger-soft)',
+        // `colors.white` is the surface token; `cream` is the deprecated alias.
+        white: 'var(--white)',
         cream: 'var(--white)',
       },
       fontFamily: {
@@ -33,7 +40,8 @@ const config: Config = {
         ],
       },
       boxShadow: {
-        soft: '0 24px 60px -32px rgba(24, 36, 32, 0.28)',
+        // Sourced from the design token so elevation has a single source of truth.
+        soft: shadows.soft,
       },
     },
   },

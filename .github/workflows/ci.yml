@@ -4,11 +4,40 @@ on:
   push:
     branches: [main]
   pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   quality:
+    name: Lint, typecheck, test, build
     runs-on: ubuntu-latest
     timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: lifeproof
+          POSTGRES_PASSWORD: lifeproof
+          POSTGRES_DB: lifeproof
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U lifeproof -d lifeproof"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      NODE_ENV: test
+      DATABASE_URL: postgres://lifeproof:lifeproof@127.0.0.1:5432/lifeproof
 
     steps:
       - name: Checkout
@@ -27,6 +56,9 @@ jobs:
 
       - name: Install
         run: pnpm install --frozen-lockfile
+
+      - name: Migrate database
+        run: pnpm db:migrate
 
       - name: Lint
         run: pnpm lint

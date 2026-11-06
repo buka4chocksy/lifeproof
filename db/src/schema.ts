@@ -1,9 +1,11 @@
-import { pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 
 /**
  * Baseline tenancy tables for the first vertical slice.
  * RLS policies, encrypted PII columns, and audit tables are owned by the DBA
- * and will be added through reviewed SQL migrations.
+ * and are added through reviewed SQL migrations (see db/migrations). The
+ * TypeScript schema here mirrors the frozen table/column shape; policies and
+ * triggers are authored directly in SQL because Drizzle does not model them.
  */
 
 export const workspaceType = pgEnum('workspace_type', ['personal', 'family', 'business']);
@@ -45,7 +47,10 @@ export const workspaces = pgTable(
     type: workspaceType('type').notNull().default('family'),
     name: text('name').notNull(),
     planId: text('plan_id'),
-    region: text('region').notNull(),
+    // Defaults to 'GB' (launch jurisdiction, England & Wales — D-014 / D-P0-01).
+    // 'NG' remains a supported value with no build work until the Nigeria gate.
+    // Kept as `text` (not an enum) so future jurisdictions are never excluded.
+    region: text('region').notNull().default('GB'),
     status: workspaceStatus('status').notNull().default('active'),
     ownerId: uuid('owner_id')
       .notNull()
@@ -73,5 +78,41 @@ export const workspaceMembers = pgTable(
   },
   (table) => [
     uniqueIndex('workspace_members_workspace_user_idx').on(table.workspaceId, table.userId),
+  ],
+);
+
+/**
+ * Append-only, hash-chained audit ledger (7-year retention).
+ *
+ * - `prev_hash`/`hash` are present now but are populated by the hash-chain
+ *   computation and daily anchoring delivered in US-141 (a later task).
+ * - Append-only is enforced in SQL: the application role is not granted
+ *   UPDATE/DELETE and a BEFORE UPDATE OR DELETE trigger raises an exception.
+ * - `actor_id` is nullable so events survive account deletion (FK ON DELETE
+ *   SET NULL) with PII minimized. `workspace_id` is NOT NULL because every
+ *   tenant-owned table carries `workspace_id`.
+ */
+export const auditEvents = pgTable(
+  'audit_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    actorId: uuid('actor_id').references(() => users.id, { onDelete: 'set null' }),
+    action: text('action').notNull(),
+    subjectType: text('subject_type'),
+    subjectId: text('subject_id'),
+    requestId: text('request_id'),
+    ipHash: text('ip_hash'),
+    beforeHash: text('before_hash'),
+    afterHash: text('after_hash'),
+    prevHash: text('prev_hash'),
+    hash: text('hash'),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id, { onDelete: 'restrict' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('audit_events_workspace_created_idx').on(table.workspaceId, table.createdAt),
+    index('audit_events_subject_idx').on(table.subjectType, table.subjectId),
   ],
 );

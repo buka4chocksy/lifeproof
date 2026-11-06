@@ -6,12 +6,41 @@ info:
     LifeProof Portal API contract. This is a baseline; the backend owns expansion.
     All capabilities are designed as versioned domain services so the Phase 2
     partner API is an exposure layer, not a rewrite.
+
+    ## Identity and sessions
+
+    `Authorization: Bearer <token>` carries an Auth0-issued access token
+    (D-003 / D-P0-03). The identity module verifies the token and maps the Auth0
+    `sub` claim to the internal `users.id` (exposed as `user_id` on the resolved
+    `IdentityPrincipal`). The web client may instead authenticate via the
+    `lifeproof_session` HttpOnly cookie.
+
+    For the walking skeleton only, a dev-mode session stub is permitted. It MUST
+    live behind the identity module abstraction and resolve to the same
+    `IdentityPrincipal` shape — controllers never bypass it. No SMS OTP is used
+    anywhere (PRD §6).
+
+    ## Conventions
+
+    - `X-Request-Id` is returned on every response and echoed into audit events as
+      `request_id`.
+    - `Idempotency-Key` is required on `POST`/`PATCH` and stored for 24 hours.
+    - Cursor pagination uses `?cursor=…&limit=…` with `limit` capped at 100.
+    - Errors use `ErrorEnvelope` with codes from Architecture Appendix B:
+      `workspace.not_found`, `workspace.name_conflict`, `auth.forbidden`,
+      `rate_limited`, `internal_error`. Auth failures are
+      `401 auth.invalid_credentials` or `403 auth.mfa_required`. Invalid input
+      (Zod validation, bad pagination) is `422 validation_failed`.
+    - Audit events are append-only and are never returned by the API.
 servers:
   - url: http://localhost:4000/v1
     description: Local development
 security:
   - bearerAuth: []
   - cookieAuth: []
+tags:
+  - name: workspace
+    description: Workspace (tenant) create, list, and read.
 paths:
   /health:
     get:
@@ -31,15 +60,196 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorEnvelope"
+  /workspaces:
+    post:
+      tags:
+        - workspace
+      operationId: createWorkspace
+      summary: Create a workspace
+      description: |
+        Creates a workspace owned by the authenticated user. Emits an
+        append-only `workspace.created` audit event (see
+        `WorkspaceCreatedAuditEvent`). `type` defaults to `family` and `region`
+        defaults to `GB` (launch jurisdiction, D-014 / D-P0-01); `NG` is accepted
+        but gated.
+      parameters:
+        - $ref: "#/components/parameters/IdempotencyKey"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WorkspaceCreate"
+      responses:
+        "201":
+          description: Workspace created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/NameConflict"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    get:
+      tags:
+        - workspace
+      operationId: listWorkspaces
+      summary: List the caller's workspaces
+      description: |
+        Returns the authenticated user's workspaces, cursor-paginated. `limit` is
+        capped at 100 (default 20).
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          description: Opaque cursor from a previous response's `next_cursor`.
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Maximum items per page, 1–100 (default 20).
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: A page of workspaces.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WorkspaceList"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "422":
+          $ref: "#/components/responses/ValidationFailed"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
+  /workspaces/{workspaceId}:
+    get:
+      tags:
+        - workspace
+      operationId: getWorkspace
+      summary: Get one workspace
+      description: |
+        Returns a single workspace the caller can access. Returns `404
+        workspace.not_found` when it does not exist or is not accessible.
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+      responses:
+        "200":
+          description: The requested workspace.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Workspace"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "500":
+          $ref: "#/components/responses/InternalError"
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Auth0-issued access token. The identity module verifies the token and maps
+        the Auth0 `sub` claim to the internal `users.id`.
     cookieAuth:
       type: apiKey
       in: cookie
       name: lifeproof_session
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      description: Client-generated idempotency key; stored for 24 hours.
+      schema:
+        type: string
+        minLength: 1
+        maxLength: 128
+    WorkspaceId:
+      name: workspaceId
+      in: path
+      required: true
+      description: Workspace UUID.
+      schema:
+        type: string
+        format: uuid
+  responses:
+    BadRequest:
+      description: Malformed request body.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Unauthorized:
+      description: Authentication failed (`auth.invalid_credentials`).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Forbidden:
+      description: Insufficient permission (`auth.forbidden`) or MFA step-up required (`auth.mfa_required`).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    NotFound:
+      description: Workspace missing or inaccessible (`workspace.not_found`).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    NameConflict:
+      description: Workspace name already exists for this owner (`workspace.name_conflict`).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    ValidationFailed:
+      description: Invalid input (e.g. invalid `name`, `type`, or `region`).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    RateLimited:
+      description: Too many requests (`rate_limited`).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    InternalError:
+      description: Unexpected error (`internal_error`).
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
   schemas:
     HealthCheck:
       type: object
@@ -100,3 +310,204 @@ components:
                     type: string
             request_id:
               type: string
+    IdentityPrincipal:
+      type: object
+      description: |
+        The authenticated principal resolved by the identity module from an
+        Auth0 access token. `sub` is the Auth0 subject claim; `user_id` is the
+        mapped internal `users.id`. The dev-mode session stub (walking skeleton)
+        resolves to the same shape.
+      required:
+        - sub
+        - user_id
+      properties:
+        sub:
+          type: string
+          description: Auth0 subject claim (`sub`).
+        user_id:
+          type: string
+          format: uuid
+          description: Internal `users.id` that the Auth0 subject maps to.
+    Workspace:
+      type: object
+      description: |
+        A workspace (tenant). Field names mirror the frozen `workspaces` table
+        (T-005) exactly — snake_case in JSON.
+      required:
+        - id
+        - type
+        - name
+        - plan_id
+        - region
+        - status
+        - owner_id
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum:
+            - personal
+            - family
+            - business
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        plan_id:
+          type: string
+          nullable: true
+          description: Billing plan id; `null` in the walking skeleton (billing deferred).
+        region:
+          type: string
+          enum:
+            - GB
+            - NG
+          description: |
+            Launch jurisdiction. Defaults to `GB` (England & Wales, D-014 /
+            D-P0-01); `NG` is accepted but gated. The DB column is `text` so
+            future jurisdictions are never excluded; the API currently restricts
+            to these two values.
+        status:
+          type: string
+          enum:
+            - active
+            - read_only
+            - suspended
+            - deleted
+        owner_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    WorkspaceCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        type:
+          type: string
+          enum:
+            - personal
+            - family
+            - business
+          default: family
+        region:
+          type: string
+          enum:
+            - GB
+            - NG
+          default: GB
+    WorkspaceList:
+      type: object
+      required:
+        - data
+        - has_more
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Workspace"
+        next_cursor:
+          type: string
+          nullable: true
+          description: Opaque cursor for the next page; `null` when there are no more results.
+        has_more:
+          type: boolean
+    AuditEvent:
+      type: object
+      description: |
+        Append-only audit record (mirrors the `audit_events` table, T-005).
+        Audit writes are append-only and audit content is NEVER returned by the
+        API; this schema documents the shape the outbox emits.
+      required:
+        - action
+        - workspace_id
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        actor_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Acting user (`users.id`); `null` after account deletion.
+        action:
+          type: string
+          description: Event name, e.g. `workspace.created`.
+        subject_type:
+          type: string
+          nullable: true
+          description: Subject entity type, e.g. `workspace`.
+        subject_id:
+          type: string
+          nullable: true
+          description: Subject entity id, e.g. the workspace UUID.
+        request_id:
+          type: string
+          nullable: true
+          description: The `X-Request-Id` of the originating request.
+        ip_hash:
+          type: string
+          nullable: true
+        before_hash:
+          type: string
+          nullable: true
+        after_hash:
+          type: string
+          nullable: true
+        prev_hash:
+          type: string
+          nullable: true
+        hash:
+          type: string
+          nullable: true
+        workspace_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+    WorkspaceCreatedAuditEvent:
+      type: object
+      description: |
+        The `workspace.created` domain event. `subject_type` is `workspace` and
+        `subject_id` is the new workspace id. `actor_id` is the workspace owner;
+        `request_id` is the `X-Request-Id` of the create request.
+      required:
+        - action
+        - subject_type
+        - actor_id
+        - subject_id
+        - request_id
+        - workspace_id
+      properties:
+        action:
+          type: string
+          const: workspace.created
+        subject_type:
+          type: string
+          const: workspace
+        actor_id:
+          type: string
+          format: uuid
+        subject_id:
+          type: string
+          format: uuid
+        request_id:
+          type: string
+        workspace_id:
+          type: string
+          format: uuid

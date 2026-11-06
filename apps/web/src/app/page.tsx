@@ -1,4 +1,6 @@
 import { colors } from '@lifeproof/design-tokens';
+import Link from 'next/link';
+import { brandName, homeLabel, siteName, wordmark } from '@/lib/brand';
 
 const releaseSteps = [
   {
@@ -70,11 +72,11 @@ const openDecisions = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-paper text-ink">
+    <main id="main" className="min-h-screen bg-paper text-ink">
       <div className="mx-auto max-w-6xl px-6 pb-16 pt-6 sm:px-8">
         <header className="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-5">
-          <a href="/" className="flex items-center gap-3" aria-label="LifeProof home">
-            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-cream">
+          <a href="/" className="flex items-center gap-3" aria-label={homeLabel}>
+            <span className="flex h-10 w-10 items-center justify-center rounded-full border border-line bg-white">
               <span
                 aria-hidden="true"
                 className="h-3 w-3 rounded-full"
@@ -83,15 +85,17 @@ export default function HomePage() {
             </span>
             <span>
               <span className="block font-display text-xl leading-none tracking-tight">
-                LifeProof
+                {wordmark}
               </span>
-              <span className="mt-1 block text-[11px] uppercase tracking-[0.22em] text-muted">
-                Portal
-              </span>
+              {brandName ? (
+                <span className="mt-1 block text-[11px] uppercase tracking-[0.22em] text-muted">
+                  Portal
+                </span>
+              ) : null}
             </span>
           </a>
           <div className="flex items-center gap-3 text-sm">
-            <span className="rounded-full border border-line bg-cream px-3 py-1 text-xs font-medium text-muted">
+            <span className="rounded-full border border-line bg-white px-3 py-1 text-xs font-medium text-muted">
               Foundation build
             </span>
             <a
@@ -105,7 +109,7 @@ export default function HomePage() {
 
         <section className="grid gap-12 py-16 lg:grid-cols-[1.15fr_0.85fr] lg:py-24">
           <div>
-            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-cream px-3 py-1 text-xs font-medium uppercase tracking-[0.16em] text-muted">
+            <p className="mb-5 inline-flex items-center gap-2 rounded-full border border-line bg-white px-3 py-1 text-xs font-medium uppercase tracking-[0.16em] text-muted">
               <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-accent" />
               Verified release infrastructure
             </p>
@@ -113,22 +117,22 @@ export default function HomePage() {
               What matters to your family, released only when it should be.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-8 text-muted">
-              LifeProof is a continuity vault with a verified release process. Store the documents
-              and instructions that matter, name who receives them, and make sure access happens
-              with evidence, identity checks, and time to pause.
+              A continuity vault with a verified release process: store the documents and
+              instructions that matter, name who receives them, and make sure access happens with
+              evidence, identity checks, and time to pause.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                className="inline-flex min-h-[44px] items-center justify-center rounded-full bg-ink px-5 py-3 text-base font-medium text-white transition-colors hover:bg-accent"
+                href="/workspaces/new"
+              >
+                Create your safe
+              </Link>
               <a
-                className="rounded-full bg-ink px-5 py-3 text-sm font-medium text-cream transition hover:bg-accent"
+                className="inline-flex min-h-[44px] items-center justify-center rounded-full border border-line-strong bg-white px-5 py-3 text-base font-medium text-ink transition-colors hover:border-accent hover:text-accent"
                 href="#status"
               >
                 See the build status
-              </a>
-              <a
-                className="rounded-full border border-line bg-cream px-5 py-3 text-sm font-medium text-ink transition hover:border-accent hover:text-accent"
-                href="http://localhost:4000/v1/health"
-              >
-                Check API health
               </a>
             </div>
             <p className="mt-4 text-xs text-muted">
@@ -136,7 +140,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <aside className="rounded-3xl border border-line bg-cream p-6 shadow-soft">
+          <aside className="rounded-3xl border border-line bg-white p-6 shadow-soft">
             <div className="flex items-center justify-between gap-4">
               <p className="text-xs uppercase tracking-[0.18em] text-muted">The release chain</p>
               <span className="rounded-full bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
@@ -161,7 +165,7 @@ export default function HomePage() {
 
         <section className="grid gap-6 border-t border-line py-14 md:grid-cols-3">
           {pillars.map((pillar) => (
-            <article key={pillar.title} className="rounded-3xl border border-line bg-cream p-6">
+            <article key={pillar.title} className="rounded-3xl border border-line bg-white p-6">
               <p className="text-xs font-medium uppercase tracking-[0.18em] text-accent">
                 {pillar.label}
               </p>
@@ -191,7 +195,7 @@ export default function HomePage() {
 
             <div className="grid gap-3 sm:grid-cols-2">
               {statusItems.map((item) => (
-                <div key={item.title} className="rounded-2xl border border-line bg-cream p-5">
+                <div key={item.title} className="rounded-2xl border border-line bg-white p-5">
                   <div className="flex items-start gap-3">
                     <span
                       aria-hidden="true"
@@ -208,7 +212,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="mt-10 rounded-3xl border border-line bg-cream p-6">
+          <div className="mt-10 rounded-3xl border border-line bg-white p-6">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <h3 className="font-display text-2xl tracking-tight">Open product decisions</h3>
@@ -235,7 +239,7 @@ export default function HomePage() {
 
         <footer className="flex flex-col gap-3 border-t border-line pt-6 text-xs leading-5 text-muted sm:flex-row sm:items-end sm:justify-between">
           <p>
-            LifeProof Portal · Phase 1 MVP foundation · Source of truth:{' '}
+            {siteName} · Phase 1 MVP foundation · Source of truth:{' '}
             <span className="text-ink">docs/build-plan/00_STRATEGY_KERNEL.md</span>
           </p>
           <p className="font-display text-sm italic text-ink">
